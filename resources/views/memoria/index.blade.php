@@ -182,3 +182,235 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const URL_DATOS = @json(route('memoria.datos', [], false));
+    const MAX = 60;
+    const NS = 'http://www.w3.org/2000/svg';
+    const histCpu = [];
+    const histRam = [];
+    let temporizador = null;
+    let cargando = false;
+
+    const $ = function (id) { return document.getElementById(id); };
+    const n1 = function (v) { return Number(v).toFixed(1); };
+
+    function fmt(kb) {
+        const mib = kb / 1024;
+        return mib >= 1024 ? (mib / 1024).toFixed(2) + ' GiB' : mib.toFixed(0) + ' MiB';
+    }
+
+    function encendido(s) {
+        const d = Math.floor(s / 86400);
+        const h = Math.floor(s % 86400 / 3600);
+        const m = Math.floor(s % 3600 / 60);
+        return (d > 0 ? d + 'd ' : '') + h + 'h ' + m + 'm ' + (s % 60) + 's';
+    }
+
+    function texto(id, valor) { $(id).textContent = valor; }
+
+    function barra(id, valor) {
+        const b = $(id);
+        b.style.width = Math.min(100, Math.max(0, valor)) + '%';
+        b.className = valor >= 90 ? 'alto' : '';
+    }
+
+    function estado(mensaje) { texto('estado', mensaje); }
+
+    function guardar(serie, valor) {
+        serie.push(Number(valor));
+        while (serie.length > MAX) { serie.shift(); }
+    }
+
+    function dibujar(idSvg, serie, color) {
+        const svg = $(idSvg);
+        const L = 34, R = 8, T = 8, B = 8;
+        const W = 600 - L - R, H = 160 - T - B;
+
+        while (svg.firstChild) { svg.removeChild(svg.firstChild); }
+
+        [0, 25, 50, 75, 100].forEach(function (v) {
+            const y = T + (1 - v / 100) * H;
+
+            const g = document.createElementNS(NS, 'line');
+            g.setAttribute('x1', L);
+            g.setAttribute('x2', L + W);
+            g.setAttribute('y1', y);
+            g.setAttribute('y2', y);
+            g.setAttribute('stroke-width', '1');
+            g.style.stroke = 'var(--borde)';
+            svg.appendChild(g);
+
+            const t = document.createElementNS(NS, 'text');
+            t.setAttribute('x', 2);
+            t.setAttribute('y', y + 3);
+            t.textContent = v + '%';
+            svg.appendChild(t);
+        });
+
+        if (serie.length < 2) { return; }
+
+        const puntos = serie.map(function (v, i) {
+            const x = L + (MAX - serie.length + i) / (MAX - 1) * W;
+            const y = T + (1 - Math.min(100, Math.max(0, v)) / 100) * H;
+            return x.toFixed(1) + ',' + y.toFixed(1);
+        }).join(' ');
+
+        const l = document.createElementNS(NS, 'polyline');
+        l.setAttribute('points', puntos);
+        l.setAttribute('fill', 'none');
+        l.setAttribute('stroke-width', '2');
+        l.style.stroke = color;
+        svg.appendChild(l);
+    }
+
+    function celda(tr, valor, numerica) {
+        const td = document.createElement('td');
+        if (numerica) { td.className = 'num'; }
+        td.textContent = valor;
+        tr.appendChild(td);
+    }
+
+    function llenarTabla(idCuerpo, filas, armar) {
+        const cuerpo = $(idCuerpo);
+        while (cuerpo.firstChild) { cuerpo.removeChild(cuerpo.firstChild); }
+        filas.forEach(function (f) {
+            const tr = document.createElement('tr');
+            armar(tr, f);
+            cuerpo.appendChild(tr);
+        });
+    }
+
+    function filaNucleo(tr, n) {
+        celda(tr, n.nombre.replace('cpu', 'CPU '), false);
+        celda(tr, n1(n.uso) + '%', true);
+
+        const td = document.createElement('td');
+        const caja = document.createElement('div');
+        caja.className = 'uso';
+        const relleno = document.createElement('span');
+        relleno.style.width = Math.min(100, Math.max(0, n.uso)) + '%';
+        if (n.uso >= 90) { relleno.className = 'alto'; }
+        caja.appendChild(relleno);
+        td.appendChild(caja);
+        tr.appendChild(td);
+    }
+
+    function pintar(d) {
+        const c = d.cpu.total;
+        const m = d.memoria;
+        const k = d.carga;
+
+        texto('cpu-uso', n1(c.uso));
+        barra('cpu-barra', c.uso);
+
+        texto('ram-uso', n1(m.pct_usada));
+        barra('ram-barra', m.pct_usada);
+        texto('ram-detalle', fmt(m.usada_kb) + ' usados de ' + fmt(m.total_kb));
+
+        texto('swap-uso', n1(m.pct_swap));
+        barra('swap-barra', m.pct_swap);
+        texto('swap-detalle', m.swap_total_kb > 0
+            ? fmt(m.swap_usada_kb) + ' usados de ' + fmt(m.swap_total_kb)
+            : 'Este sistema no tiene swap configurado');
+
+        texto('carga-1', Number(k.m1).toFixed(2));
+        texto('carga-detalle', '5 min: ' + Number(k.m5).toFixed(2) + ' · 15 min: ' + Number(k.m15).toFixed(2));
+        texto('carga-procesos', k.ejecutando + ' en ejecución de ' + k.procesos + ' procesos');
+
+        texto('encendido', encendido(d.uptime_s));
+
+        texto('d-usuario', n1(c.usuario) + '%');
+        texto('d-sistema', n1(c.sistema) + '%');
+        texto('d-es', n1(c.espera_es) + '%');
+        texto('d-robado', n1(c.robado) + '%');
+        texto('d-ocioso', n1(c.ocioso) + '%');
+
+        llenarTabla('nucleos-cuerpo', d.cpu.nucleos, filaNucleo);
+
+        llenarTabla('top-cpu-cuerpo', d.top.cpu, function (tr, p) {
+            celda(tr, p.pid, true);
+            celda(tr, p.comando, false);
+            celda(tr, p.usuario, false);
+            celda(tr, n1(p.cpu) + '%', true);
+        });
+
+        llenarTabla('top-mem-cuerpo', d.top.memoria, function (tr, p) {
+            celda(tr, p.pid, true);
+            celda(tr, p.comando, false);
+            celda(tr, p.usuario, false);
+            celda(tr, fmt(p.rss_kb), true);
+            celda(tr, n1(p.pct) + '%', true);
+        });
+
+        texto('m-total', fmt(m.total_kb));
+        texto('m-usada', fmt(m.usada_kb));
+        texto('m-libre', fmt(m.libre_kb));
+        texto('m-cache', fmt(m.cache_kb));
+        texto('m-disponible', fmt(m.disponible_kb));
+        texto('m-swap-total', fmt(m.swap_total_kb));
+        texto('m-swap-usada', fmt(m.swap_usada_kb));
+
+        guardar(histCpu, c.uso);
+        guardar(histRam, m.pct_usada);
+        dibujar('grafica-cpu', histCpu, 'var(--acento)');
+        dibujar('grafica-ram', histRam, 'var(--ok)');
+    }
+
+    async function actualizar() {
+        if (cargando) { return; }
+        cargando = true;
+
+        try {
+            const r = await fetch(URL_DATOS, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+                cache: 'no-store'
+            });
+
+            if (r.status === 401 || r.redirected) {
+                estado('La sesión venció. Vuelve a iniciar sesión.');
+                detener();
+                return;
+            }
+            if (!r.ok) { throw new Error('HTTP ' + r.status); }
+
+            const d = await r.json();
+            pintar(d);
+            estado('Última actualización: ' + d.hora);
+        } catch (e) {
+            estado('No se pudo actualizar (' + e.message + ')');
+        } finally {
+            cargando = false;
+        }
+    }
+
+    function detener() {
+        if (temporizador) { clearInterval(temporizador); temporizador = null; }
+    }
+
+    function iniciar() {
+        detener();
+        if ($('auto').checked) {
+            temporizador = setInterval(function () {
+                if (!document.hidden) { actualizar(); }
+            }, Number($('intervalo').value));
+        }
+    }
+
+    $('auto').addEventListener('change', iniciar);
+    $('intervalo').addEventListener('change', iniciar);
+    $('ahora').addEventListener('click', actualizar);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { actualizar(); }
+    });
+
+    dibujar('grafica-cpu', histCpu, 'var(--acento)');
+    dibujar('grafica-ram', histRam, 'var(--ok)');
+    actualizar();
+    iniciar();
+})();
+</script>
+@endpush
