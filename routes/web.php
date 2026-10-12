@@ -1,5 +1,6 @@
 <?php
-
+use App\Http\Controllers\MemoriaController;
+use App\Http\Controllers\PlanificacionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Middleware\RolMiddleware;
@@ -25,4 +26,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/bitacora', [BitacoraController::class, 'index'])
         ->middleware(RolMiddleware::class . ':admin')
         ->name('bitacora.index');
+
+	    // ===== M3 Planificación =====
+    Route::get('/planificacion', [PlanificacionController::class, 'index'])->name('planificacion.index');
+    Route::post('/planificacion/simular', [PlanificacionController::class, 'simular'])->name('planificacion.simular');
+    Route::get('/planificacion/{simulacion}', [PlanificacionController::class, 'ver'])->name('planificacion.ver');
+    // ===== fin M3 =====
+
+	    // ===== M2 CPU y Memoria =====
+    Route::get('/memoria', [MemoriaController::class, 'index'])->name('memoria.index');
+    Route::get('/memoria/datos', [MemoriaController::class, 'datos'])
+        ->middleware('throttle:120,1')
+        ->name('memoria.datos');
+    // ===== fin M2 =====
 });
