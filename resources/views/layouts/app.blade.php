@@ -13,7 +13,7 @@
 <header class="barra">
     <a class="marca" href="{{ route('dashboard') }}">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><rect x="3" y="3" width="18" height="18"/><path d="M6 13h3l2-5 3 9 2-4h2"/></svg>
-        SysMonitor<em>Grupp 2</em>
+        SysMonitor<em>Grupo 4</em>
     </a>
     @include('partials.menu')
     <div class="usuario">
@@ -35,7 +35,7 @@
     @yield('contenido')
 </main>
 
-<footer class="pie">kernel {{ php_uname('r') }} · UMG · Sistemas Operativos</footer>
+<footer class="pie">kernel {{ php_uname('r') }} · UMG · Sistemas Operativos 1</footer>
 @stack('scripts')
 </body>
 </html>

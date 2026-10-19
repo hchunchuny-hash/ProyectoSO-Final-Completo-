@@ -1,9 +1,12 @@
 <?php
+use App\Http\Controllers\AlmacenamientoController;
+use App\Http\Controllers\InterbloqueosController;
 use App\Http\Controllers\MemoriaController;
 use App\Http\Controllers\PlanificacionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Middleware\RolMiddleware;
+use App\Http\Controllers\ProcesosController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
@@ -39,4 +42,32 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:120,1')
         ->name('memoria.datos');
     // ===== fin M2 =====
+
+	// ===== M1 Procesos =====
+    Route::get('/procesos', [ProcesosController::class, 'index'])->name('procesos.index');
+    Route::post('/procesos/lanzar', [ProcesosController::class, 'lanzar'])
+        ->middleware(RolMiddleware::class . ':admin')
+        ->name('procesos.lanzar');
+    Route::post('/procesos/senal', [ProcesosController::class, 'senal'])
+        ->middleware(RolMiddleware::class . ':admin')
+        ->name('procesos.senal');
+    Route::post('/procesos/prioridad', [ProcesosController::class, 'prioridad'])
+        ->middleware(RolMiddleware::class . ':admin')
+        ->name('procesos.prioridad');
+    // ===== fin M1 =====
+
+	    // ===== M4 Interbloqueos =====
+    Route::get('/interbloqueos', [InterbloqueosController::class, 'index'])->name('interbloqueos.index');
+    Route::post('/interbloqueos/banquero', [InterbloqueosController::class, 'banquero'])->name('interbloqueos.banquero');
+    Route::post('/interbloqueos/solicitud', [InterbloqueosController::class, 'solicitud'])->name('interbloqueos.solicitud');
+    Route::post('/interbloqueos/detectar', [InterbloqueosController::class, 'detectar'])->name('interbloqueos.detectar');
+    // ===== fin M4 =====
+
+	    // ===== M5 Almacenamiento =====
+    Route::get('/almacenamiento', [AlmacenamientoController::class, 'index'])->name('almacenamiento.index');
+    Route::get('/almacenamiento/usuarios', [AlmacenamientoController::class, 'usuarios'])->name('almacenamiento.usuarios');
+    Route::get('/almacenamiento/explorador', [AlmacenamientoController::class, 'explorador'])
+        ->middleware('throttle:60,1')
+        ->name('almacenamiento.explorador');
+    // ===== fin M5 =====
 });

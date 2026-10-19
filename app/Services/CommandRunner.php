@@ -17,6 +17,8 @@ class CommandRunner
         'discos'     => ['/usr/bin/lsblk', '-o', 'NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT'],
         'uso_discos' => ['/usr/bin/df', '-h'],
         'montajes'   => ['/usr/bin/findmnt'],
+	'discos_detalle'  => ['/usr/bin/lsblk', '-P', '-b', '-o', 'NAME,TYPE,SIZE,FSTYPE,MOUNTPOINT,PTTYPE,MODEL,RO,PKNAME'],
+	'montajes_reales' => ['/usr/bin/findmnt', '-P', '--real', '-o', 'TARGET,SOURCE,FSTYPE,OPTIONS'],
         'sesiones'   => ['/usr/bin/who'],
         'puertos'    => ['/usr/bin/ss', '-tuln'],
         'servicios'  => ['/usr/bin/systemctl', 'list-units', '--type=service', '--no-pager', '--no-legend'],
