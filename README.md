@@ -31,8 +31,8 @@ Debian, Apache 2, PHP, Laravel, SQLite, Blade y CSS propio.
 ## Instalación en desarrollo
 
 ```bash
-git clone https://github.com/hchunchuny-hash/Proyecto-Final-SO.git
-cd Proyecto-Final-SO
+git clone https://github.com/hchunchuny-hash/ProyectoSO-Final-Completo-.git
+cd ProyectoSO-Final-Completo-
 composer install
 cp .env.example .env
 php artisan key:generate

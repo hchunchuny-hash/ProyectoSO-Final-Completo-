@@ -52,7 +52,7 @@ php -v
 ```bash
 sudo mkdir -p /var/www/sysmonitor
 sudo chown $USER:www-data /var/www/sysmonitor
-git clone https://github.com/hchunchuny-hash/Proyecto-Final-SO.git /var/www/sysmonitor
+git clone https://github.com/hchunchuny-hash/ProyectoSO-Final-Completo-.git /var/www/sysmonitor
 cd /var/www/sysmonitor
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
