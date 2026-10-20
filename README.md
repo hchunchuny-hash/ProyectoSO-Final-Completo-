@@ -4,7 +4,7 @@ Aplicación web para observar y administrar, desde el navegador, el sistema oper
 
 Proyecto final del curso de Sistemas Operativos 1, Universidad Mariano Gálvez de Guatemala, Centro de Estudios Chimaltenango. Catedrático: Ing. Josué Jiménez.
 
-**URL pública:** [https://tu-dominio.ejemplo]
+**URL pública:** https://grupodigital4.sbs
 
 ## Integrantes y módulos
 
@@ -12,8 +12,8 @@ Proyecto final del curso de Sistemas Operativos 1, Universidad Mariano Gálvez d
 |---|---|---|
 | Arnold | M1 Procesos | Listado y administración de procesos reales |
 | Dany | M2 CPU y Memoria | Uso de CPU, RAM, swap y carga |
-| Henry | M3 Planificación | Simulador de algoritmos con diagrama de Gantt |
-| Griselda | M4 Interbloqueos | Algoritmo del banquero y grafo de asignación |
+| Dany | M3 Planificación | Simulador de algoritmos con diagrama de Gantt |
+| Gricelda | M4 Interbloqueos | Algoritmo del banquero y grafo de asignación |
 | Marisol | M5 Almacenamiento | Discos, particiones, sistemas de archivos y usuarios |
 | Henry | M6 Integración y Bitácora | Login con roles, layout, bitácora, CommandRunner y despliegue |
 
@@ -85,4 +85,5 @@ Se utilizó Claude (Anthropic) como apoyo para explicar conceptos, preparar borr
 
 ## Capturas de pantalla
 
-[Agregar capturas de inicio, login, bitácora y de cada módulo]
+
+
