@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Invitaciones;
 use App\Services\RegistroBitacora;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -91,7 +92,51 @@ class UsuariosController extends Controller
             'Rol: observador; estado: pendiente'
         );
 
+        $enviado = Invitaciones::enviar($usuario);
+        RegistroBitacora::registrar(
+            'Invitación enviada',
+            $usuario->email,
+            $enviado ? RegistroBitacora::EXITO : RegistroBitacora::ERROR
+        );
+
+        if ($enviado) {
+            return redirect()->route('usuarios.index')->with('ok', $this->mensajeEnvio($usuario, 'Cuenta creada.'));
+        }
+
         return redirect()->route('usuarios.index')
-            ->with('ok', "Cuenta creada para {$usuario->email}. Queda pendiente hasta que defina su contraseña.");
+            ->with('aviso', 'Cuenta creada, pero no se pudo enviar el correo. Usa «Reenviar invitación».');
+    }
+
+    public function reenviar(Request $request, User $usuario)
+    {
+        if ($usuario->estado !== 'pendiente') {
+            return redirect()->route('usuarios.index')
+                ->with('aviso', 'Solo se puede reenviar la invitación a cuentas pendientes.');
+        }
+
+        $enviado = Invitaciones::enviar($usuario);
+        RegistroBitacora::registrar(
+            'Invitación reenviada',
+            $usuario->email,
+            $enviado ? RegistroBitacora::EXITO : RegistroBitacora::ERROR
+        );
+
+        if ($enviado) {
+            return redirect()->route('usuarios.index')->with('ok', $this->mensajeEnvio($usuario, 'Invitación reenviada.'));
+        }
+
+        return redirect()->route('usuarios.index')
+            ->with('aviso', 'No se pudo enviar el correo. Revisa la configuración de correo e inténtalo de nuevo.');
+    }
+
+    private function mensajeEnvio(User $usuario, string $inicio): string
+    {
+        $mensaje = "{$inicio} Se envió la invitación a {$usuario->email}; vence en " . Invitaciones::HORAS_VIGENCIA . ' horas.';
+
+        if (config('mail.default') === 'log') {
+            $mensaje .= ' (Modo desarrollo: el correo quedó en storage/logs/laravel.log.)';
+        }
+
+        return $mensaje;
     }
 }

@@ -11,6 +11,8 @@
   .filtros .campo{margin-top:0;min-width:180px}
   .paginas{display:flex;justify-content:space-between;margin-top:14px}
   .mensaje-ok{margin:0 0 16px;padding:10px 14px;border:1px solid var(--ok);border-radius:var(--radio);color:var(--ok);font-size:13px}
+  .mensaje-aviso{margin:0 0 16px;padding:10px 14px;border:1px solid var(--acento);border-radius:var(--radio);color:var(--acento);font-size:13px}
+  .btn.chico{padding:4px 10px;font-size:12px}
 </style>
 @endpush
 
@@ -19,6 +21,9 @@
 
     @if (session('ok'))
         <p class="mensaje-ok">{{ session('ok') }}</p>
+    @endif
+    @if (session('aviso'))
+        <p class="mensaje-aviso">{{ session('aviso') }}</p>
     @endif
 
     <div class="encabezado">
@@ -62,6 +67,7 @@
                         <th>Estado</th>
                         <th>Vigencia hasta</th>
                         <th>Institución o cargo</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,9 +85,19 @@
                         <td><span class="insignia {{ $colores[$e] ?? '' }}">{{ strtoupper($e) }}</span></td>
                         <td>{{ $u->vigente_hasta ? $u->vigente_hasta->format('d/m/Y') : 'Sin vencimiento' }}</td>
                         <td>{{ $u->institucion ?? '—' }}</td>
+                        <td>
+                            @if ($u->estado === 'pendiente')
+                                <form method="POST" action="{{ route('usuarios.reenviar', $u) }}">
+                                    @csrf
+                                    <button type="submit" class="btn sec chico">Reenviar invitación</button>
+                                </form>
+                            @else
+                                —
+                            @endif
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6">No hay usuarios con ese filtro.</td></tr>
+                    <tr><td colspan="7">No hay usuarios con ese filtro.</td></tr>
                 @endforelse
                 </tbody>
             </table>
