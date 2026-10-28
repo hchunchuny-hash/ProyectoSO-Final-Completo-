@@ -54,6 +54,24 @@ Route::middleware(['auth', CuentaActiva::class])->group(function () {
 	Route::post('/{usuario}/invitar', [UsuariosController::class, 'reenviar'])
 		->middleware('throttle:10,1')
 		->name('reenviar');
+            Route::get('/{usuario}', [UsuariosController::class, 'show'])
+                ->whereNumber('usuario')
+                ->name('show');
+            Route::get('/{usuario}/editar', [UsuariosController::class, 'edit'])
+                ->whereNumber('usuario')
+                ->name('edit');
+            Route::put('/{usuario}', [UsuariosController::class, 'update'])
+                ->whereNumber('usuario')
+                ->middleware('throttle:30,1')
+                ->name('update');
+            Route::post('/{usuario}/desactivar', [UsuariosController::class, 'desactivar'])
+                ->whereNumber('usuario')
+                ->middleware('throttle:20,1')
+                ->name('desactivar');
+            Route::post('/{usuario}/reactivar', [UsuariosController::class, 'reactivar'])
+                ->whereNumber('usuario')
+                ->middleware('throttle:20,1')
+                ->name('reactivar');
         });
     // ===== fin gestión de usuarios =====
 
