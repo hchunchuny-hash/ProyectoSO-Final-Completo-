@@ -1,4 +1,5 @@
 <?php
+use App\Http\Middleware\CuentaActiva;
 use App\Http\Controllers\InvitacionController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AlmacenamientoController;
@@ -26,7 +27,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', CuentaActiva::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
 
