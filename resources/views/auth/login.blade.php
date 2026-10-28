@@ -29,6 +29,9 @@
       <label class="campo" for="password">Contraseña
         <input id="password" type="password" name="password" required>
       </label>
+	@if (session('status'))	
+	<p class="nota" style="color:var(--ok);margin-top:12px">{{ session('status') }}</p>
+	@endif
       @error('email')
         <p class="error">{{ $message }}</p>
       @enderror

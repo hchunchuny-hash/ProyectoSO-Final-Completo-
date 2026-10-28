@@ -12,6 +12,7 @@
 @endpush
 
 @section('contenido')
+    @include('usuarios._pestanas')
     <form method="GET" action="{{ route('bitacora.index') }}" class="filtros">
         <label class="campo" for="q">Buscar
             <input id="q" type="text" name="q" value="{{ $texto }}" placeholder="usuario, acción o proceso">

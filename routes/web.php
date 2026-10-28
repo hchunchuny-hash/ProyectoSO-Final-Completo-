@@ -1,4 +1,6 @@
 <?php
+use App\Http\Controllers\InvitacionController;
+use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AlmacenamientoController;
 use App\Http\Controllers\InterbloqueosController;
 use App\Http\Controllers\MemoriaController;
@@ -10,7 +12,15 @@ use App\Http\Controllers\ProcesosController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
-
+// Invitación: enlace de un solo uso para definir la contraseña (público)
+Route::get('/invitacion/{token}', [InvitacionController::class, 'mostrar'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware('throttle:20,1')
+    ->name('invitacion.mostrar');
+Route::post('/invitacion/{token}', [InvitacionController::class, 'aceptar'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware('throttle:10,1')
+    ->name('invitacion.aceptar');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'mostrarLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -29,6 +39,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/bitacora', [BitacoraController::class, 'index'])
         ->middleware(RolMiddleware::class . ':admin')
         ->name('bitacora.index');
+
+    // ===== M6 Gestión de usuarios (solo Administrador) =====
+    Route::middleware(RolMiddleware::class . ':admin')
+        ->prefix('usuarios')
+        ->name('usuarios.')
+        ->group(function () {
+            Route::get('/', [UsuariosController::class, 'index'])->name('index');
+            Route::get('/crear', [UsuariosController::class, 'create'])->name('create');
+            Route::post('/', [UsuariosController::class, 'store'])
+                ->middleware('throttle:20,1')
+                ->name('store');
+	Route::post('/{usuario}/invitar', [UsuariosController::class, 'reenviar'])
+		->middleware('throttle:10,1')
+		->name('reenviar');
+        });
+    // ===== fin gestión de usuarios =====
 
 	    // ===== M3 Planificación =====
     Route::get('/planificacion', [PlanificacionController::class, 'index'])->name('planificacion.index');
