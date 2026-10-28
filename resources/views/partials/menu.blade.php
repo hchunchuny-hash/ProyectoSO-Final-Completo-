@@ -6,7 +6,7 @@
         ['M3', 'Planificación',    'planificacion'],
         ['M4', 'Interbloqueos',    'interbloqueos'],
         ['M5', 'Almacenamiento',   'almacenamiento'],
-        ['M6', 'Bitácora',         'bitacora'],
+        ['M6', 'Administración',   'bitacora'],
     ];
 @endphp
 <nav class="menu" aria-label="Módulos">
@@ -14,7 +14,6 @@
     @foreach ($modulos as [$codigo, $nombre, $ruta])
         @continue($ruta === 'bitacora' && ! $esAdmin)
         <a href="{{ Route::has($ruta . '.index') ? route($ruta . '.index') : '#' }}"
-           class="{{ request()->routeIs($ruta . '.*') ? 'activo' : '' }}"><b>{{ $codigo }}</b>{{ $nombre }}</a>
+           class="{{ request()->routeIs($ruta . '.*') || ($ruta === 'bitacora' && request()->routeIs('usuarios.*')) ? 'activo' : '' }}"><b>{{ $codigo }}</b>{{ $nombre }}</a>
     @endforeach
 </nav>
-

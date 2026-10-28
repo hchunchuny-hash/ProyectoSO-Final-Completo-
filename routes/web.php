@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\AlmacenamientoController;
 use App\Http\Controllers\InterbloqueosController;
 use App\Http\Controllers\MemoriaController;
@@ -29,6 +30,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/bitacora', [BitacoraController::class, 'index'])
         ->middleware(RolMiddleware::class . ':admin')
         ->name('bitacora.index');
+
+    // ===== M6 Gestión de usuarios (solo Administrador) =====
+    Route::middleware(RolMiddleware::class . ':admin')
+        ->prefix('usuarios')
+        ->name('usuarios.')
+        ->group(function () {
+            Route::get('/', [UsuariosController::class, 'index'])->name('index');
+            Route::get('/crear', [UsuariosController::class, 'create'])->name('create');
+            Route::post('/', [UsuariosController::class, 'store'])
+                ->middleware('throttle:20,1')
+                ->name('store');
+        });
+    // ===== fin gestión de usuarios =====
 
 	    // ===== M3 Planificación =====
     Route::get('/planificacion', [PlanificacionController::class, 'index'])->name('planificacion.index');
