@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\RecuperacionController;
 use App\Http\Middleware\CuentaActiva;
 use App\Http\Controllers\InvitacionController;
 use App\Http\Controllers\UsuariosController;
@@ -25,6 +26,17 @@ Route::post('/invitacion/{token}', [InvitacionController::class, 'aceptar'])
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'mostrarLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+
+    // Recuperación de contraseña con código de 6 dígitos
+    Route::get('/recuperar', [RecuperacionController::class, 'solicitar'])->name('recuperar.solicitar');
+    Route::post('/recuperar', [RecuperacionController::class, 'enviar'])
+        ->middleware('throttle:10,15')
+        ->name('recuperar.enviar');
+    Route::get('/recuperar/codigo', [RecuperacionController::class, 'formularioCodigo'])->name('recuperar.codigo');
+    Route::post('/recuperar/codigo', [RecuperacionController::class, 'restablecer'])
+        ->middleware('throttle:20,15')
+        ->name('recuperar.restablecer');
+
 });
 
 Route::middleware(['auth', CuentaActiva::class])->group(function () {

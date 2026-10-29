@@ -36,6 +36,7 @@
         <p class="error">{{ $message }}</p>
       @enderror
       <button type="submit" class="btn bloque">Entrar</button>
+      <p class="nota" style="margin-top:14px;text-align:center"><a href="{{ route('recuperar.solicitar') }}" style="color:var(--acento)">¿Olvidaste tu contraseña?</a></p>
     </form>
   </div>
 </main>
