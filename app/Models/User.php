@@ -72,4 +72,13 @@ class User extends Authenticatable
         }
         return $this->estado === 'activo' && ! $this->estaVencido() && ! $this->aunNoVigente();
     }
+
+    /** ¿Puede usar «¿Olvidaste tu contraseña?»? El principal se recupera por consola. */
+    public function puedeRecuperar(): bool
+    {
+        return ! $this->esPrincipal()
+            && (bool) $this->permite_recuperacion
+            && $this->estado === 'activo'
+            && $this->puedeAcceder();
+    }
 }

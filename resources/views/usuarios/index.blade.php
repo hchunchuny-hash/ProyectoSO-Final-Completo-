@@ -13,6 +13,9 @@
   .mensaje-ok{margin:0 0 16px;padding:10px 14px;border:1px solid var(--ok);border-radius:var(--radio);color:var(--ok);font-size:13px}
   .mensaje-aviso{margin:0 0 16px;padding:10px 14px;border:1px solid var(--acento);border-radius:var(--radio);color:var(--acento);font-size:13px}
   .btn.chico{padding:4px 10px;font-size:12px}
+  .btn.peligro{background:transparent;color:var(--error);border:1px solid var(--error)}
+  .acc{display:flex;flex-wrap:wrap;gap:6px}
+  .acc form{margin:0}
 </style>
 @endpush
 
@@ -66,13 +69,16 @@
                         <th>Rol</th>
                         <th>Estado</th>
                         <th>Vigencia hasta</th>
-                        <th>Institución o cargo</th>
+                        <th>Último acceso</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                 @forelse ($usuarios as $u)
-                    @php $e = $u->estadoEfectivo(); @endphp
+                    @php
+                        $e = $u->estadoEfectivo();
+                        $ua = $ultimos[$u->id] ?? null;
+                    @endphp
                     <tr>
                         <td>
                             {{ $u->name }}
@@ -84,16 +90,34 @@
                         <td>{{ $u->role === 'admin' ? 'Administrador' : 'Observador' }}</td>
                         <td><span class="insignia {{ $colores[$e] ?? '' }}">{{ strtoupper($e) }}</span></td>
                         <td>{{ $u->vigente_hasta ? $u->vigente_hasta->format('d/m/Y') : 'Sin vencimiento' }}</td>
-                        <td>{{ $u->institucion ?? '—' }}</td>
+                        <td>{{ $ua ? \Illuminate\Support\Carbon::parse($ua, 'UTC')->timezone('America/Guatemala')->format('d/m/Y H:i') : 'Nunca' }}</td>
                         <td>
-                            @if ($u->estado === 'pendiente')
-                                <form method="POST" action="{{ route('usuarios.reenviar', $u) }}">
-                                    @csrf
-                                    <button type="submit" class="btn sec chico">Reenviar invitación</button>
-                                </form>
-                            @else
-                                —
-                            @endif
+                            <div class="acc">
+                                <a href="{{ route('usuarios.show', $u) }}" class="btn sec chico">Ver</a>
+                                <a href="{{ route('usuarios.edit', $u) }}" class="btn sec chico">Editar</a>
+
+                                @if ($u->estado === 'pendiente')
+                                    <form method="POST" action="{{ route('usuarios.reenviar', $u) }}">
+                                        @csrf
+                                        <button type="submit" class="btn sec chico">Reenviar invitación</button>
+                                    </form>
+                                @endif
+
+                                @if (! $u->es_principal && $u->id !== auth()->id())
+                                    @if ($u->estado === 'inactivo')
+                                        <form method="POST" action="{{ route('usuarios.reactivar', $u) }}">
+                                            @csrf
+                                            <button type="submit" class="btn sec chico">Reactivar</button>
+                                        </form>
+                                    @else
+                                        <form method="POST" action="{{ route('usuarios.desactivar', $u) }}"
+                                              onsubmit="return confirm('¿Desactivar esta cuenta? Se cerrarán sus sesiones abiertas.')">
+                                            @csrf
+                                            <button type="submit" class="btn peligro chico">Desactivar</button>
+                                        </form>
+                                    @endif
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
